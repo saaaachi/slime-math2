@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+        .ad-wrapper { background: #fff; padding: 10px; border-radius: 10px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+        /* 閉じるボタン（最初は隠しておく） */
+        .close-btn { 
+            display: none; 
+            margin-top: 15px; padding: 10px 30px; 
+            background: #eee; color: #333; border: none; 
+            border-radius: 20px; cursor: pointer; font-weight: bold; 
+        }
+        
+        /* カウントダウン表示のスタイル */
+        #timer { 
+            margin-top: 15px; font-size: 14px; color: #666; font-weight: bold; 
+        }
+
+        .ad-label { font-size: 10px; color: #666; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="ad-wrapper">
+        <div class="ad-label">SPONSORED</div>
+        
+        <div id="im-large-ad"></div>
+
+        <div id="timer">あと <span id="seconds">5</span> 秒で閉じられます</div>
+
+        <button id="close-btn" class="close-btn" onclick="parent.closeAd()">✕ 閉じる</button>
+    </div>
+
+    <script>
+        // 5秒のカウントダウン処理
+        let timeLeft = 5;
+        const timerText = document.getElementById('seconds');
+        const timerDiv = document.getElementById('timer');
+        const btn = document.getElementById('close-btn');
+
+        const countdown = setInterval(() => {
+            timeLeft--;
+            timerText.innerText = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdown); // タイマー停止
+                timerDiv.style.display = 'none'; // カウントダウンを消す
+                btn.style.display = 'inline-block'; // ボタンを出す
+            }
+        }, 1000);
+
+        // i-mobile 広告設定
+        window.adsbyimobile = window.adsbyimobile || [];
+        window.adsbyimobile.push({
+            pid: 84561,
+            mid: 590804,
+            asid: "1924115", 
+            type: "banner",
+            display: "inline",
+            elementid: "im-large-ad"
+        });
+    </script>
+    <script async src="https://imp-adedge.i-mobile.co.jp/script/v1/spot.js?20220104"></script>
+</body>
+</html>
