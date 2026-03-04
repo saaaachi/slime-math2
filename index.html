@@ -235,13 +235,6 @@
             goButton.disabled = false;
             goButton.innerText = "RETRY";
         }
-
-        // 30秒ごとに上下広告をリフレッシュ
-        setInterval(() => {
-            const now = Date.now();
-            document.getElementById('frame-top').src = "ad.html?t=" + now;
-            document.getElementById('frame-bottom').src = "ad.html?t=" + now;
-        }, 30000);
     </script>
 </body>
 </html>
