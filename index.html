@@ -3,138 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slime Math Challenge - Ad Deluxe</title>
+    <title>Slime Math Challenge - Brain Trainer</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1299640300068792" crossorigin="anonymous"></script>
     <style>
-        body { 
-            margin: 0; height: 100vh; display: flex; flex-direction: column; 
-            background: #e3f2fd; font-family: 'Arial', sans-serif; overflow: hidden; touch-action: none; position: fixed; width: 100%;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; position: fixed; touch-action: none; }
+        body { background: #e3f2fd; font-family: 'Hiragino Sans', 'Meiryo', sans-serif; display: flex; flex-direction: column; }
         
-        /* 上下の広告枠：110px */
-        #ad-top, #ad-bottom { 
-            width: 100%; height: 110px; background: #333; 
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 100;
-        }
-        iframe { border: none; width: 100%; height: 100%; }
+        /* 上部広告：100px 固定 */
+        #ad-top { width: 100%; height: 100px; background: #263238; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 100; border-bottom: 3px solid #1e88e5; }
 
         /* ゲームエリア */
-        #game-area { 
-            flex-grow: 1; position: relative; width: 100%; background: #bbdefb; overflow: hidden;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        #game-outer { flex-grow: 1; position: relative; width: 100%; background: #e3f2fd; overflow: hidden; }
+        #game-area { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
         
-        #score-ui { position: absolute; top: 10px; right: 20px; font-size: 20px; font-weight: bold; color: #1565c0; }
-        #question { font-size: 48px; font-weight: bold; color: #1565c0; margin-bottom: 20px; }
-        #timer-bar { width: 80%; height: 10px; background: #e3f2fd; border-radius: 5px; margin-bottom: 30px; overflow: hidden; }
-        #timer-fill { width: 100%; height: 100%; background: #f44336; }
+        #ui { position: absolute; top: 15px; width: 100%; text-align: center; font-size: 28px; font-weight: bold; color: #1565c0; z-index: 10; display: none; text-shadow: 1px 1px 0 white; }
         
-        #choices { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 400px; }
-        .choice-btn { padding: 20px; font-size: 24px; background: #ffffff; border: 3px solid #1565c0; border-radius: 15px; color: #1565c0; font-weight: bold; cursor: pointer; text-align: center; -webkit-tap-highlight-color: transparent; }
-        .choice-btn:active { background: #1565c0; color: white; }
+        #question { font-size: 60px; font-weight: bold; color: #1565c0; margin-bottom: 20px; text-shadow: 2px 2px 0 white; }
+        
+        /* タイマーバー（Challengeは赤色） */
+        #timer-bar { width: 80%; height: 12px; background: #bbdefb; border-radius: 10px; margin-bottom: 40px; overflow: hidden; border: 2px solid #fff; }
+        #timer-fill { width: 100%; height: 100%; background: #f44336; transition: width 0.1s linear; }
 
-        /* メニュー（ゲームオーバー）画面 */
+        /* 選択肢ボタン */
+        #choices { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px; }
+        .choice-btn { 
+            padding: 25px 0; font-size: 28px; background: #ffffff; border: none; border-radius: 20px; 
+            color: #1565c0; font-weight: bold; cursor: pointer; box-shadow: 0 6px #bbdefb; transition: 0.1s; 
+        }
+        .choice-btn:active { transform: translateY(4px); box-shadow: none; background: #1e88e5; color: white; }
+
+        /* メニュー画面 */
         #menuScreen { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.95); display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; z-index: 200; padding: 15px 0; box-sizing: border-box;
+            background: rgba(255,255,255,0.97); display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 500; padding: 20px; 
         }
 
-        /* 320x100のスリム広告コンテナ */
-        #ad-middle-container { 
-            width: 320px; height: 100px; background: #eee;
-            display: none; justify-content: center; align-items: center; 
-            overflow: hidden; flex-shrink: 0; border: 1px solid #ccc; margin: 15px 0;
+        /* 【収益】300x250 レクタングル */
+        #ad-middle-box {
+            width: 300px; height: 250px; background: #f5f5f5;
+            margin: 15px 0; display: none; justify-content: center; align-items: center;
+            border-radius: 12px; border: 1px solid #bbdefb; overflow: hidden;
         }
 
-        /* 大広告（全画面） */
-        #bigAdScreen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 2000;
-            display: none; justify-content: center; align-items: center;
-        }
-        .ad-frame-wrapper { width: 90%; height: 80%; position: relative; }
-        .ad-close-btn { 
-            position: absolute; top: -10px; right: -10px; color: white; font-size: 30px; 
-            font-weight: bold; cursor: pointer; background: rgba(0,0,0,0.5); 
-            width: 40px; height: 40px; border-radius: 50%; display: none;
-            align-items: center; justify-content: center; z-index: 2100;
-        }
-        
-        .btn-group { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
-        .menu-btn { padding: 14px 30px; font-size: 18px; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; text-decoration: none; width: 240px; text-align: center; transition: 0.3s; }
-        #goButton { background: #1e88e5; box-shadow: 0 4px #1565c0; }
-        #goButton:disabled { background: #999; box-shadow: 0 4px #666; cursor: default; }
-        .link-btn { background: #ff4081; box-shadow: 0 4px #c2185b; }
-        .best-info { color: #1565c0; font-size: 18px; font-weight: bold; }
+        .menu-btn-group { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 15px; }
+        .menu-btn { width: 270px; padding: 18px; font-size: 20px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; text-decoration: none; text-align: center; transition: 0.2s; }
+        #retry-btn { background: #1e88e5; color: white; box-shadow: 0 5px #1565c0; }
+        #retry-btn:active { transform: translateY(3px); box-shadow: none; }
+        #retry-btn:disabled { background: #ccc; box-shadow: none; transform: none; color: #888; }
+        .sub-btn { background: #ff4081; color: white; box-shadow: 0 5px #c2185b; font-size: 16px; }
+
+        /* インタースティシャル */
+        #inter-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 99999; align-items: center; justify-content: center; }
+        .inter-content { width: 330px; height: 350px; background: #fff; position: relative; border-radius: 15px; }
+        #close-ad-btn { position: absolute; top: -55px; right: 0; width: 45px; height: 45px; background: #333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid #fff; cursor: pointer; }
     </style>
 </head>
-<body>
-    <div id="ad-top"><iframe src="ad.html" id="frame-top"></iframe></div>
+<body oncontextmenu="return false;">
 
-    <div id="game-area">
-        <div id="score-ui">SCORE: 0</div>
-        <div id="question">? + ?</div>
-        <div id="timer-bar"><div id="timer-fill"></div></div>
-        <div id="choices">
-            <div class="choice-btn" onclick="checkAnswer(this)">0</div>
-            <div class="choice-btn" onclick="checkAnswer(this)">0</div>
-            <div class="choice-btn" onclick="checkAnswer(this)">0</div>
-            <div class="choice-btn" onclick="checkAnswer(this)">0</div>
+    <div id="ad-top">
+        <ins class="adsbygoogle" style="display:inline-block;width:320px;height:100px" data-ad-client="ca-pub-1299640300068792" data-ad-slot="3972022911"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <div id="game-outer">
+        <div id="ui">SCORE: 0</div>
+        
+        <div id="game-area">
+            <div id="question">? + ?</div>
+            <div id="timer-bar"><div id="timer-fill"></div></div>
+            <div id="choices">
+                <button class="choice-btn" onclick="checkAnswer(this)">0</button>
+                <button class="choice-btn" onclick="checkAnswer(this)">0</button>
+                <button class="choice-btn" onclick="checkAnswer(this)">0</button>
+                <button class="choice-btn" onclick="checkAnswer(this)">0</button>
+            </div>
         </div>
 
         <div id="menuScreen">
-            <div style="text-align:center;">
-                <h1 id="menuTitle" style="color:#1e88e5; margin:0; font-size: 28px;">SLIME MATH</h1>
-                <p id="menuMsg" style="margin:5px 0; font-size:16px;">5秒以内に解けるかな？⚡</p>
-                <div class="best-info">BEST SCORE: <span id="best-ui">0</span></div>
+            <h2 id="result-msg" style="color:#1565c0; margin: 5px 0; font-size: 34px;">Math Challenge</h2>
+            <p id="menu-desc" style="margin:5px 0; font-size: 16px; color: #666; font-weight: bold; text-align: center; line-height: 1.4;">極限の5秒計算に挑め！⚡</p>
+            
+            <div id="ad-middle-box">
+                <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-1299640300068792" data-ad-slot="9050127185"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
             </div>
 
-            <div id="ad-middle-container">
-                <div id="im-8b988d7b042a42d5b8df6921b628cf00">
-                    <script async src="https://imp-adedge.i-mobile.co.jp/script/v1/spot.js?20220104"></script>
-                    <script>(window.adsbyimobile=window.adsbyimobile||[]).push({pid:84561,mid:590804,asid:1924211,type:"banner",display:"inline",elementid:"im-8b988d7b042a42d5b8df6921b628cf00"})</script>
-                </div>
-            </div>
-
-            <div class="btn-group">
-                <button id="goButton" class="menu-btn" onclick="startNewGame()">GAME START</button>
-                <a href="https://saaaachi.github.io/" class="menu-btn link-btn">他のゲームはこちら</a>
+            <div class="menu-btn-group">
+                <button id="retry-btn" class="menu-btn" onclick="startNewGame()">★ スタート！ ★</button>
+                <a href="https://saaaachi.github.io/" class="sub-btn menu-btn">他のゲームで遊ぶ</a>
             </div>
         </div>
 
-        <div id="bigAdScreen">
-            <div class="ad-frame-wrapper">
-                <div id="ad-close-btn" class="ad-close-btn" onclick="closeAd()">×</div>
-                <iframe id="ad-large-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+        <div id="inter-screen">
+            <div class="inter-content">
+                <div id="close-ad-btn" onclick="closeInterAd()">5</div>
+                <iframe id="ifr-inter" src="about:blank" style="width:100%; height:100%; border:none; border-radius:15px; background:#fff;"></iframe>
             </div>
         </div>
     </div>
 
-    <div id="ad-bottom"><iframe src="ad.html" id="frame-bottom"></iframe></div>
-
     <script>
         let score = 0, correctAnswer = 0, timeLeft = 100, timerInterval, gameActive = false, playCount = 0;
-        let bestScore = localStorage.getItem("slime_math_challenge_best") || 0;
-
         const questionEl = document.getElementById('question'),
-              scoreEl = document.getElementById('score-ui'),
+              ui = document.getElementById('ui'),
               timerFill = document.getElementById('timer-fill'),
               menuScreen = document.getElementById('menuScreen'),
-              menuTitle = document.getElementById('menuTitle'),
-              menuMsg = document.getElementById('menuMsg'),
-              bestUi = document.getElementById('best-ui'),
-              goButton = document.getElementById('goButton'),
-              adMid = document.getElementById('ad-middle-container'),
+              adMid = document.getElementById('ad-middle-box'),
+              resultMsg = document.getElementById('result-msg'),
+              retryBtn = document.getElementById('retry-btn'),
               choiceBtns = document.querySelectorAll('.choice-btn');
-
-        window.onload = () => { 
-            bestUi.innerText = bestScore; 
-            adMid.style.display = "none"; // スタート時は非表示
-        };
 
         function startNewGame() {
             menuScreen.style.display = 'none';
             adMid.style.display = 'none';
+            ui.style.display = 'block';
             gameActive = true;
             score = 0;
             nextQuestion();
@@ -142,13 +126,14 @@
 
         function nextQuestion() {
             if(!gameActive) return;
-            scoreEl.innerText = `SCORE: ${score}`;
+            ui.innerText = `SCORE: ${score}`;
+            
+            // Challengeは数値の上がり幅を大きく設定
             let maxNum = 10 + Math.floor(score / 5) * 5;
             let a = Math.floor(Math.random() * maxNum) + 1;
             let b = Math.floor(Math.random() * maxNum) + 1;
-            let isSub = Math.random() > 0.5;
-
-            if (isSub) {
+            
+            if (Math.random() > 0.5) {
                 if (a < b) [a, b] = [b, a];
                 questionEl.innerText = `${a} - ${b}`;
                 correctAnswer = a - b;
@@ -159,20 +144,23 @@
 
             let answers = [correctAnswer];
             while(answers.length < 4) {
-                let wrong = correctAnswer + (Math.floor(Math.random() * 11) - 5);
-                if (wrong >= 0 && !answers.includes(wrong)) answers.push(wrong);
+                let diff = Math.floor(Math.random() * 15) - 7;
+                let wrong = correctAnswer + diff;
+                if (wrong >= 0 && !answers.includes(wrong) && diff !== 0) {
+                    answers.push(wrong);
+                }
             }
             answers.sort(() => Math.random() - 0.5);
             choiceBtns.forEach((btn, i) => { btn.innerText = answers[i]; });
 
             clearInterval(timerInterval);
             timeLeft = 100;
+            // Challenge固定：5秒（100ms * 50回分）
             timerInterval = setInterval(() => {
-                timeLeft -= 2; // Challengeは1回2%減（5秒）
+                timeLeft -= 2; // 100msごとに2%減 = 50回で0% (5秒)
                 timerFill.style.width = timeLeft + "%";
                 if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    gameOver("TIME UP!");
+                    gameOver("TIME UP!⏳");
                 }
             }, 100);
         }
@@ -183,7 +171,7 @@
                 score++;
                 nextQuestion();
             } else {
-                gameOver("WRONG!");
+                gameOver("WRONG!❌");
             }
         }
 
@@ -192,49 +180,51 @@
             playCount++;
             clearInterval(timerInterval);
 
-            if(score > bestScore) {
-                bestScore = score;
-                localStorage.setItem("slime_math_challenge_best", bestScore);
-                bestUi.innerText = bestScore;
-            }
-
-            menuTitle.innerText = msg;
-            menuTitle.style.color = "#f44336";
-            menuMsg.innerText = "SCORE: " + score;
+            resultMsg.innerText = "GAME OVER";
+            document.getElementById("menu-desc").innerHTML = msg + "<br>SCORE: " + score;
             
-            // ボタン待機状態
-            goButton.innerText = "お待ちください...";
-            goButton.disabled = true;
-            adMid.style.display = "flex"; // ゲームオーバー時のみ表示
+            retryBtn.innerText = "お待ちください...";
+            retryBtn.disabled = true;
+            adMid.style.display = "flex"; 
             menuScreen.style.display = "flex";
 
-            // 大広告判定（3回目、以降7回おき）
-            if (playCount === 3 || (playCount > 3 && (playCount - 3) % 7 === 0)) {
-                setTimeout(showBigAd, 400);
-            } else {
-                setTimeout(() => {
-                    goButton.disabled = false;
-                    goButton.innerText = "RETRY";
-                }, 1500);
+            setTimeout(() => {
+                retryBtn.disabled = false;
+                retryBtn.innerText = "再挑戦する！";
+            }, 1500);
+
+            if (playCount % 3 === 0) {
+                setTimeout(showInterAd, 500);
             }
         }
 
-        function showBigAd() {
-            const screen = document.getElementById("bigAdScreen");
-            const closeBtn = document.getElementById("ad-close-btn");
-            const frame = document.getElementById("ad-large-frame");
-            frame.src = "ad.large.html?t=" + Date.now();
+        function showInterAd() {
+            const screen = document.getElementById("inter-screen"), 
+                  closeBtn = document.getElementById("close-ad-btn"), 
+                  ifr = document.getElementById('ifr-inter');
+            ifr.src = './ad.large.html?v=' + Date.now();
             screen.style.display = "flex";
-            closeBtn.style.display = "none";
-            setTimeout(() => { closeBtn.style.display = "flex"; }, 5000);
+            let timerVal = 5;
+            closeBtn.innerText = timerVal;
+            closeBtn.style.pointerEvents = "none";
+            const countdown = setInterval(() => {
+                timerVal--;
+                if (timerVal > 0) {
+                    closeBtn.innerText = timerVal;
+                } else {
+                    clearInterval(countdown);
+                    closeBtn.innerText = "×";
+                    closeBtn.style.pointerEvents = "auto";
+                }
+            }, 1000);
         }
 
-        function closeAd() {
-            document.getElementById("bigAdScreen").style.display = "none";
-            document.getElementById("ad-large-frame").src = "";
-            goButton.disabled = false;
-            goButton.innerText = "RETRY";
+        function closeInterAd() {
+            document.getElementById("inter-screen").style.display = "none";
+            document.getElementById('ifr-inter').src = 'about:blank';
         }
+
+        window.onload = () => { menuScreen.style.display = "flex"; };
     </script>
 </body>
 </html>
